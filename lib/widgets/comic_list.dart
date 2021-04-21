@@ -4,18 +4,22 @@ import 'package:project_bb/models/comic.dart';
 import 'package:project_bb/widgets/comic_list_tile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+const double _loadMoreMargin = 80;
+
 class ComicList extends StatefulWidget {
   final List<Comic> comicList;
   final Function(Comic) onTap;
   final Function onMaxScroll;
   final Widget loadMoreWidget;
+  final bool loadMore;
 
   const ComicList({
     Key key,
     @required this.comicList,
-    this.onTap,
-    this.onMaxScroll,
-    this.loadMoreWidget = const SizedBox(),
+    @required this.onTap,
+    @required this.onMaxScroll,
+    @required this.loadMoreWidget,
+    @required this.loadMore,
   }) : super(key: key);
 
   @override
@@ -31,7 +35,7 @@ class _ComicListState extends State<ComicList> {
     _scrollController.addListener(() {
       setState(() {
         if (_scrollController.offset >
-                _scrollController.position.maxScrollExtent &&
+                _scrollController.position.maxScrollExtent + _loadMoreMargin &&
             _scrollController.position.userScrollDirection ==
                 ScrollDirection.reverse) {
           widget.onMaxScroll.call();
@@ -53,7 +57,7 @@ class _ComicListState extends State<ComicList> {
       controller: _scrollController,
       itemBuilder: (BuildContext context, int index) {
         if (index == widget.comicList.length) {
-          return widget.loadMoreWidget;
+          return widget.loadMore ? widget.loadMoreWidget : SizedBox();
         }
         return ComicListTile(
           leading: CachedNetworkImage(

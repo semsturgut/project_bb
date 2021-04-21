@@ -10,6 +10,7 @@ class ComicListScreen extends StatefulWidget {
 }
 
 class _ComicListScreenState extends State<ComicListScreen> {
+  /// TODO: Add image opener
   ComicListCubit cubit = ComicListCubit();
 
   void initState() {
@@ -55,6 +56,7 @@ class _BuildBodyWidget extends StatelessWidget {
               await context.read<ComicListCubit>().loadMore();
           },
           onTap: (comic) {},
+          loadMore: state.loadMore,
           loadMoreWidget: LoadingWidget(
               count: state.loadedDataCount, totalCount: state.totalDataCount),
         ));

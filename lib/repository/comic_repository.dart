@@ -2,6 +2,7 @@ import 'package:project_bb/models/comic.dart';
 import 'package:project_bb/network/network_manager.dart';
 
 class ComicRepository {
+  /// TODO: Handle 404-500 status errors
   static Future<Comic> getLatestComic() async {
     return await NetworkManager.instance.getLatestComic();
   }

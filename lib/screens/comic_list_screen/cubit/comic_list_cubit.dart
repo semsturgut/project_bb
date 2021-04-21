@@ -8,9 +8,15 @@ part 'comic_list_state.dart';
 class ComicListCubit extends Cubit<ComicListState> {
   ComicListCubit()
       : super(ComicListState(
-            isLoading: true, loadMore: false, totalDataCount: 15, loadedDataCount: 0));
+          isLoading: true,
+          loadMore: false,
+          totalDataCount: 15,
+          loadedDataCount: 0,
+        ));
 
   List<Comic> _comicList = List<Comic>();
+  /// TODO: Use freezed for helping to state management
+  /// TODO: Clean up emitting states
 
   Future<void> init() async {
     Comic latestComic = await ComicRepository.getLatestComic();
@@ -22,6 +28,7 @@ class ComicListCubit extends Cubit<ComicListState> {
     emit(state.copyWith(
       comicList: _comicList,
       latestComicNumber: latestComic.number - state.totalDataCount,
+      loadedDataCount: 0,
       isLoading: false,
     ));
   }
@@ -37,6 +44,7 @@ class ComicListCubit extends Cubit<ComicListState> {
     emit(state.copyWith(
       comicList: _comicList,
       latestComicNumber: state.latestComicNumber - state.totalDataCount,
+      loadedDataCount: 0,
       loadMore: false,
     ));
   }
