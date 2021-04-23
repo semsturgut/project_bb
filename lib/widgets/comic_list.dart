@@ -4,14 +4,15 @@ import 'package:project_bb/models/comic.dart';
 import 'package:project_bb/widgets/comic_list_tile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-const double _loadMoreMargin = 80;
+const double _loadMoreMargin = 100;
 
 class ComicList extends StatefulWidget {
   final List<Comic> comicList;
   final Function(Comic) onTap;
   final Function onMaxScroll;
   final Widget loadMoreWidget;
-  final bool loadMore;
+  final bool moreLoading;
+  final Function onRefresh;
 
   const ComicList({
     Key key,
@@ -19,7 +20,8 @@ class ComicList extends StatefulWidget {
     @required this.onTap,
     @required this.onMaxScroll,
     @required this.loadMoreWidget,
-    @required this.loadMore,
+    @required this.moreLoading,
+    @required this.onRefresh,
   }) : super(key: key);
 
   @override
@@ -37,7 +39,8 @@ class _ComicListState extends State<ComicList> {
         if (_scrollController.offset >
                 _scrollController.position.maxScrollExtent + _loadMoreMargin &&
             _scrollController.position.userScrollDirection ==
-                ScrollDirection.reverse) {
+                ScrollDirection.reverse &&
+            widget.onMaxScroll != null) {
           widget.onMaxScroll.call();
         }
       });
@@ -52,23 +55,31 @@ class _ComicListState extends State<ComicList> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: widget.comicList.length + 1,
-      controller: _scrollController,
-      itemBuilder: (BuildContext context, int index) {
-        if (index == widget.comicList.length) {
-          return widget.loadMore ? widget.loadMoreWidget : SizedBox();
-        }
-        return ComicListTile(
-          leading: CachedNetworkImage(
-            imageUrl: widget.comicList.elementAt(index).img,
-            placeholder: (_, __) => CircularProgressIndicator(),
-            errorWidget: (_, __, ___) => Icon(Icons.error),
-          ),
-          title: widget.comicList.elementAt(index).title,
-          onTap: () => widget.onTap(widget.comicList.elementAt(index)),
-        );
+    return RefreshIndicator(
+      onRefresh: () {
+        return Future.delayed(Duration(milliseconds: 100), () {
+          if (widget.onRefresh() != null) widget.onRefresh();
+        });
       },
+      child: ListView.builder(
+        itemCount: widget.comicList.length + 1,
+        physics: const BouncingScrollPhysics(),
+        controller: _scrollController,
+        itemBuilder: (BuildContext context, int index) {
+          if (index == widget.comicList.length) {
+            return widget.moreLoading ? widget.loadMoreWidget : SizedBox();
+          }
+          return ComicListTile(
+            leading: CachedNetworkImage(
+              imageUrl: widget.comicList.elementAt(index).img,
+              placeholder: (_, __) => CircularProgressIndicator(),
+              errorWidget: (_, __, ___) => Icon(Icons.error),
+            ),
+            title: widget.comicList.elementAt(index).title,
+            onTap: () => widget.onTap(widget.comicList.elementAt(index)),
+          );
+        },
+      ),
     );
   }
 }

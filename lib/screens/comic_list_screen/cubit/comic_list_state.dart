@@ -2,23 +2,23 @@ part of 'comic_list_cubit.dart';
 
 class ComicListState extends Equatable {
   /// Common
-  final bool isLoading;
+  final bool pageIsLoading;
   final int latestComicNumber;
 
   /// Data
   final List<Comic> comicList;
-  final bool loadMore;
+  final bool moreLoading;
   final int loadedDataCount;
   final int totalDataCount;
 
   const ComicListState({
     /// Common
-    this.isLoading,
+    this.pageIsLoading,
     this.latestComicNumber,
 
     /// Data
     this.comicList,
-    this.loadMore,
+    this.moreLoading,
     this.loadedDataCount,
     this.totalDataCount,
   });
@@ -26,35 +26,35 @@ class ComicListState extends Equatable {
   @override
   List<Object> get props => [
         /// Common
-        isLoading,
+        pageIsLoading,
         latestComicNumber,
 
         /// Data
         comicList,
-        loadMore,
+        moreLoading,
         loadedDataCount,
         totalDataCount,
       ];
 
   ComicListState copyWith({
     /// Common
-    bool isLoading,
+    bool pageIsLoading,
     int latestComicNumber,
 
     /// Data
     List<Comic> comicList,
-    bool loadMore,
+    bool moreLoading,
     int loadedDataCount,
     int totalDataCount,
   }) {
     return ComicListState(
       /// Common
-      isLoading: isLoading ?? this.isLoading,
+      pageIsLoading: pageIsLoading ?? this.pageIsLoading,
       latestComicNumber: latestComicNumber ?? this.latestComicNumber,
 
       /// Data
       comicList: comicList ?? this.comicList,
-      loadMore: loadMore ?? this.loadMore,
+      moreLoading: moreLoading ?? this.moreLoading,
       loadedDataCount: loadedDataCount ?? this.loadedDataCount,
       totalDataCount:  totalDataCount ?? this.totalDataCount,
     );

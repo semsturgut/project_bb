@@ -8,17 +8,16 @@ part 'comic_list_state.dart';
 class ComicListCubit extends Cubit<ComicListState> {
   ComicListCubit()
       : super(ComicListState(
-          isLoading: true,
-          loadMore: false,
+          moreLoading: false,
           totalDataCount: 15,
           loadedDataCount: 0,
         ));
 
   List<Comic> _comicList = List<Comic>();
-  /// TODO: Use freezed for helping to state management
-  /// TODO: Clean up emitting states
 
   Future<void> init() async {
+    emit(state.copyWith(pageIsLoading: true));
+    _comicList.clear();
     Comic latestComic = await ComicRepository.getLatestComic();
     _comicList = await ComicRepository.getListOfComics(
       latestComicNumber: latestComic.number,
@@ -29,12 +28,13 @@ class ComicListCubit extends Cubit<ComicListState> {
       comicList: _comicList,
       latestComicNumber: latestComic.number - state.totalDataCount,
       loadedDataCount: 0,
-      isLoading: false,
+      pageIsLoading: false,
     ));
   }
 
   Future<void> loadMore() async {
-    emit(state.copyWith(loadMore: true));
+    print(state.moreLoading);
+    emit(state.copyWith(moreLoading: true));
     _comicList = state.comicList;
     _comicList.addAll(await ComicRepository.getListOfComics(
       latestComicNumber: state.latestComicNumber,
@@ -45,7 +45,7 @@ class ComicListCubit extends Cubit<ComicListState> {
       comicList: _comicList,
       latestComicNumber: state.latestComicNumber - state.totalDataCount,
       loadedDataCount: 0,
-      loadMore: false,
+      moreLoading: false,
     ));
   }
 }

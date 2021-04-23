@@ -17,7 +17,10 @@ class _ComicListScreenState extends State<ComicListScreen> {
   /// TODO: What happens if server is 404
   /// TODO: What happens if couple of items is not exist
   /// TODO: Add refresh whole list option (scroll to refresh)
-  /// TODO: Fix android pull to load more system
+  /// TODO: Catch latest list element 0 on comics
+  /// TODO: Use freezed for helping to state management
+  /// TODO: Clean up emitting states
+  /// TODO: Fix load double more problem
   ComicListCubit cubit = ComicListCubit();
 
   void initState() {
@@ -47,19 +50,20 @@ class _BuildBodyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ComicListCubit, ComicListState>(
       buildWhen: (previous, current) =>
-          previous.isLoading != current.isLoading ||
-          previous.loadMore != current.loadMore ||
+          previous.pageIsLoading != current.pageIsLoading ||
+          previous.moreLoading != current.moreLoading ||
           previous.comicList != current.comicList ||
           previous.loadedDataCount != current.loadedDataCount,
       builder: (context, state) {
-        if (state.isLoading)
+        if (state.pageIsLoading)
           return LoadingWidget(
               count: state.loadedDataCount, totalCount: state.totalDataCount);
         return SafeArea(
             child: ComicList(
+          onRefresh: () async => await context.read<ComicListCubit>().init(),
           comicList: state.comicList,
           onMaxScroll: () async {
-            if (!state.loadMore)
+            if (!state.moreLoading)
               await context.read<ComicListCubit>().loadMore();
           },
           onTap: (comic) {
@@ -69,7 +73,7 @@ class _BuildBodyWidget extends StatelessWidget {
                   builder: (context) => ComicDetailScreen(comic: comic)),
             );
           },
-          loadMore: state.loadMore,
+          moreLoading: state.moreLoading,
           loadMoreWidget: LoadingWidget(
               count: state.loadedDataCount, totalCount: state.totalDataCount),
         ));
