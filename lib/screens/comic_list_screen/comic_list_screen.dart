@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:project_bb/screens/comic_detail_screen/comic_detail_screen.dart';
 import 'package:project_bb/screens/comic_list_screen/cubit/comic_list_cubit.dart';
 import 'package:project_bb/widgets/comic_list.dart';
 import 'package:project_bb/widgets/loading_widget.dart';
@@ -11,6 +12,12 @@ class ComicListScreen extends StatefulWidget {
 
 class _ComicListScreenState extends State<ComicListScreen> {
   /// TODO: Add image opener
+  /// TODO: Add error handlings
+  /// TODO: What happens if WIFI/Cellular is not available
+  /// TODO: What happens if server is 404
+  /// TODO: What happens if couple of items is not exist
+  /// TODO: Add refresh whole list option (scroll to refresh)
+  /// TODO: Fix android pull to load more system
   ComicListCubit cubit = ComicListCubit();
 
   void initState() {
@@ -55,7 +62,13 @@ class _BuildBodyWidget extends StatelessWidget {
             if (!state.loadMore)
               await context.read<ComicListCubit>().loadMore();
           },
-          onTap: (comic) {},
+          onTap: (comic) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ComicDetailScreen(comic: comic)),
+            );
+          },
           loadMore: state.loadMore,
           loadMoreWidget: LoadingWidget(
               count: state.loadedDataCount, totalCount: state.totalDataCount),
