@@ -4,10 +4,9 @@ enum ApiResponseStatus {
   notFound,
   badRequest,
   serverError,
-  unprocessableEntity,
   otherError,
   noContent,
-  uninitialized
+  noConnection
 }
 
 ApiResponseStatus handleApiStatusWithBaseResponse(int response) {
@@ -25,5 +24,25 @@ ApiResponseStatus handleApiStatusWithBaseResponse(int response) {
     return ApiResponseStatus.noContent;
   } else {
     return ApiResponseStatus.otherError;
+  }
+}
+
+String handleBaseResponseWithString(ApiResponseStatus apiResponseStatus) {
+  switch (apiResponseStatus) {
+    case ApiResponseStatus.noConnection:
+      return 'No Connection';
+      break;
+    case ApiResponseStatus.serverError:
+      return 'Server Error';
+      break;
+    case ApiResponseStatus.notFound:
+      return 'Not Found';
+      break;
+    case ApiResponseStatus.noContent:
+      return 'Not Content';
+      break;
+    default:
+      return "Generic Error Message";
+      break;
   }
 }

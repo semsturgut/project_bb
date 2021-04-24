@@ -1,9 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:project_bb/repository/comic_repository.dart';
 import 'package:project_bb/screens/comic_detail_screen/comic_detail_screen.dart';
 import 'package:project_bb/screens/comic_list_screen/cubit/comic_list_cubit.dart';
+import 'package:project_bb/screens/comic_list_screen/cubit/comic_list_state.dart';
+import 'package:project_bb/services/api_response_status.dart';
+
 import 'package:project_bb/widgets/comic_list.dart';
 import 'package:project_bb/widgets/loading_widget.dart';
+
+const Duration changeStateDuration = Duration(milliseconds: 200);
 
 class ComicListScreen extends StatefulWidget {
   @override
@@ -11,21 +18,11 @@ class ComicListScreen extends StatefulWidget {
 }
 
 class _ComicListScreenState extends State<ComicListScreen> {
-  /// TODO: Add image opener
-  /// TODO: Add error handlings
-  /// TODO: What happens if WIFI/Cellular is not available
-  /// TODO: What happens if server is 404
-  /// TODO: What happens if couple of items is not exist
-  /// TODO: Add refresh whole list option (scroll to refresh)
-  /// TODO: Catch latest list element 0 on comics
-  /// TODO: Use freezed for helping to state management
-  /// TODO: Clean up emitting states
-  /// TODO: Fix load double more problem
-  ComicListCubit cubit = ComicListCubit();
+  ComicListCubit cubit = ComicListCubit(comicRepository: ComicRepository());
 
   void initState() {
     super.initState();
-    cubit.init();
+    cubit.initialize();
   }
 
   @override
@@ -48,36 +45,58 @@ class _ComicListScreenState extends State<ComicListScreen> {
 class _BuildBodyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ComicListCubit, ComicListState>(
-      buildWhen: (previous, current) =>
-          previous.pageIsLoading != current.pageIsLoading ||
-          previous.moreLoading != current.moreLoading ||
-          previous.comicList != current.comicList ||
-          previous.loadedDataCount != current.loadedDataCount,
-      builder: (context, state) {
-        if (state.pageIsLoading)
-          return LoadingWidget(
-              count: state.loadedDataCount, totalCount: state.totalDataCount);
-        return SafeArea(
-            child: ComicList(
-          onRefresh: () async => await context.read<ComicListCubit>().init(),
-          comicList: state.comicList,
-          onMaxScroll: () async {
-            if (!state.moreLoading)
-              await context.read<ComicListCubit>().loadMore();
-          },
-          onTap: (comic) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ComicDetailScreen(comic: comic)),
-            );
-          },
-          moreLoading: state.moreLoading,
-          loadMoreWidget: LoadingWidget(
-              count: state.loadedDataCount, totalCount: state.totalDataCount),
-        ));
-      },
+    return Scaffold(
+      body: BlocBuilder<ComicListCubit, ComicListState>(
+        builder: _builder,
+      ),
     );
   }
+}
+
+Widget _builder(BuildContext context, ComicListState state) => AnimatedSwitcher(
+      duration: changeStateDuration,
+      child: state.maybeMap(
+        showLoading: (loadingState) => LoadingWidget(
+          count: loadingState.loadedDataCount,
+          totalCount: loadingState.totalDataCount,
+        ),
+        showError: (errorState) => _buildError(context, errorState),
+        showView: (viewState) => _buildList(context, viewState),
+        orElse: () => const Center(child: Text("Unknown problem occured!")),
+      ),
+    );
+
+Widget _buildList(BuildContext context, ShowView state) {
+  return SafeArea(
+    child: ComicList(
+      onRefresh: context.read<ComicListCubit>().initialize,
+      comicList: state.comicList,
+      onMaxScroll: context.read<ComicListCubit>().loadMore,
+      onTap: (comic, index) {
+        if (comic.responseStatus == ApiResponseStatus.successful)
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ComicDetailScreen(comic: comic)));
+        else
+          context.read<ComicListCubit>().reLoadComic(comic.number, index);
+      },
+      moreLoading: state.moreLoading,
+      reLoadingIndex: state.reloadComicIndex,
+      loadMoreWidget: LoadingWidget(
+          count: state.loadedDataCount, totalCount: state.totalDataCount),
+    ),
+  );
+}
+
+Widget _buildError(BuildContext context, ShowError state) {
+  return Center(
+    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Text(state.error),
+      CupertinoButton(
+        onPressed: context.read<ComicListCubit>().initialize,
+        child: Text("Reload"),
+      ),
+    ]),
+  );
 }

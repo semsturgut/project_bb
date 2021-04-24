@@ -1,4 +1,5 @@
 import 'package:project_bb/models/base_response.dart';
+import 'package:project_bb/services/api_response_status.dart';
 
 class Comic extends BaseResponse {
   String month;
@@ -13,20 +14,22 @@ class Comic extends BaseResponse {
   String title;
   String day;
 
-  Comic(
-      {this.month,
-      this.number,
-      this.link,
-      this.year,
-      this.news,
-      this.safeTitle,
-      this.transcript,
-      this.alt,
-      this.img,
-      this.title,
-      this.day});
+  Comic({
+    this.month,
+    this.number,
+    this.link,
+    this.year,
+    this.news,
+    this.safeTitle,
+    this.transcript,
+    this.alt,
+    this.img,
+    this.title,
+    this.day,
+    ApiResponseStatus responseStatus,
+  }) : super(responseStatus: responseStatus);
 
-  Comic.fromJson(Map<String, dynamic> json, int statusCode) {
+  Comic.fromJson(Map<String, dynamic> json, ApiResponseStatus responseStatus) {
     if (json["month"] is String) this.month = json["month"];
     if (json["num"] is int) this.number = json["num"];
     if (json["link"] is String) this.link = json["link"];
@@ -38,6 +41,6 @@ class Comic extends BaseResponse {
     if (json["img"] is String) this.img = json["img"];
     if (json["title"] is String) this.title = json["title"];
     if (json["day"] is String) this.day = json["day"];
-    this.statusCode = statusCode;
+    this.responseStatus = responseStatus;
   }
 }

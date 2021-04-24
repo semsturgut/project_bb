@@ -1,62 +1,27 @@
-part of 'comic_list_cubit.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:project_bb/models/comic.dart';
 
-class ComicListState extends Equatable {
-  /// Common
-  final bool pageIsLoading;
-  final int latestComicNumber;
+part 'comic_list_state.freezed.dart';
 
-  /// Data
-  final List<Comic> comicList;
-  final bool moreLoading;
-  final int loadedDataCount;
-  final int totalDataCount;
+@freezed
+abstract class ComicListState with _$ComicListState {
+  const factory ComicListState.initial() = InitialState;
 
-  const ComicListState({
-    /// Common
-    this.pageIsLoading,
-    this.latestComicNumber,
+  const factory ComicListState.showLoading({
+    int loadedDataCount,
+    int totalDataCount,
+  }) = ShowLoading;
 
-    /// Data
-    this.comicList,
-    this.moreLoading,
-    this.loadedDataCount,
-    this.totalDataCount,
-  });
+  const factory ComicListState.showError({String error}) = ShowError;
 
-  @override
-  List<Object> get props => [
-        /// Common
-        pageIsLoading,
-        latestComicNumber,
-
-        /// Data
-        comicList,
-        moreLoading,
-        loadedDataCount,
-        totalDataCount,
-      ];
-
-  ComicListState copyWith({
-    /// Common
-    bool pageIsLoading,
-    int latestComicNumber,
-
-    /// Data
-    List<Comic> comicList,
+  const factory ComicListState.showView({
+    /// Load More
     bool moreLoading,
     int loadedDataCount,
     int totalDataCount,
-  }) {
-    return ComicListState(
-      /// Common
-      pageIsLoading: pageIsLoading ?? this.pageIsLoading,
-      latestComicNumber: latestComicNumber ?? this.latestComicNumber,
 
-      /// Data
-      comicList: comicList ?? this.comicList,
-      moreLoading: moreLoading ?? this.moreLoading,
-      loadedDataCount: loadedDataCount ?? this.loadedDataCount,
-      totalDataCount:  totalDataCount ?? this.totalDataCount,
-    );
-  }
+    /// Data
+    List<Comic> comicList,
+    int reloadComicIndex,
+  }) = ShowView;
 }

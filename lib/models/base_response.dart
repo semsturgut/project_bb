@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:project_bb/services/api_response_status.dart';
 
-class BaseResponse {
-  int statusCode;
-  BaseResponse({@required this.statusCode});
+abstract class BaseResponse {
+  ApiResponseStatus responseStatus;
+  BaseResponse({this.responseStatus});
 }

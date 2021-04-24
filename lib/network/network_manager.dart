@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:project_bb/models/comic.dart';
+import 'package:project_bb/services/api_response_status.dart';
 
 class NetworkManager {
   static final NetworkManager _singleton = NetworkManager._internal();
@@ -22,33 +24,57 @@ class NetworkManager {
   static final String infoURL = 'info.0.json';
   static final String latestComicURL = baseURL + infoURL;
 
-  Future<Comic> getLatestComic() async {
+  Future<dynamic> getLatestComic() async {
     http.Response response = await doGet(url: latestComicURL);
     final body = jsonDecode(response.body);
-    // developer.log(body.toString(), name: 'Response');
-    return Comic.fromJson(body, response.statusCode);
+    ApiResponseStatus apiResponseStatus =
+        _responseControl(statusCode: response.statusCode);
+    return Comic.fromJson(body, apiResponseStatus);
   }
 
   Future<Comic> getComicFromNumber({int number}) async {
     http.Response response =
         await doGet(url: baseURL + number.toString() + '/' + infoURL);
-    final body = jsonDecode(response.body);
-    // developer.log(body.toString(), name: 'Response');
-    return Comic.fromJson(body, response.statusCode);
+    Map<String, dynamic> body = Map<String, dynamic>();
+    Comic _comic = Comic();
+    ApiResponseStatus apiResponseStatus =
+        _responseControl(statusCode: response.statusCode, control: false);
+    try {
+      body = jsonDecode(response.body);
+      _comic = Comic.fromJson(body, apiResponseStatus);
+    } catch (e) {
+      _comic = Comic(
+        img: "",
+        title: handleBaseResponseWithString(apiResponseStatus),
+        number: number,
+        alt: e.toString(),
+        responseStatus: apiResponseStatus,
+      );
+    }
+    return _comic;
+  }
+
+  ApiResponseStatus _responseControl({int statusCode, bool control = true}) {
+    ApiResponseStatus apiResponseStatus =
+        handleApiStatusWithBaseResponse(statusCode);
+    if (apiResponseStatus != ApiResponseStatus.successful && control)
+      throw apiResponseStatus;
+
+    return apiResponseStatus;
   }
 
   Future<http.Response> doGet(
       {String url, Map<String, String> queryParameters}) async {
-    Map<String, String> header = {
-      'Content-Type': 'application/json',
-    };
+    Map<String, String> header = {'Content-Type': 'application/json'};
     final parsedUrl = Uri.parse(url).replace(queryParameters: queryParameters);
-    // developer.log(parsedUrl.toString(), name: 'Request Url');
-    return await NetworkManager.instance.client
-        .get(
-          parsedUrl,
-          headers: header,
-        )
-        .timeout(Duration(minutes: timeOutMinute));
+    http.Response response;
+    try {
+      response = await NetworkManager.instance.client
+          .get(parsedUrl, headers: header)
+          .timeout(Duration(minutes: timeOutMinute));
+    } on SocketException {
+      throw ApiResponseStatus.noConnection;
+    }
+    return response;
   }
 }
