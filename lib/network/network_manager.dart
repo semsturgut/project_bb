@@ -11,7 +11,7 @@ class NetworkManager {
 
   static NetworkManager get instance => _singleton;
   http.Client client;
-  static int timeOutMinute = 1;
+  static int timeOutSeconds = 15;
 
   static String baseURL;
   void prpUrls() => baseURL = 'https://xkcd.com/';
@@ -37,9 +37,10 @@ class NetworkManager {
         await doGet(url: baseURL + number.toString() + '/' + infoURL);
     Map<String, dynamic> body = Map<String, dynamic>();
     Comic _comic = Comic();
-    ApiResponseStatus apiResponseStatus =
-        _responseStatusConverter(statusCode: response.statusCode, control: false);
+    ApiResponseStatus apiResponseStatus;
     try {
+      apiResponseStatus = _responseStatusConverter(
+          statusCode: response.statusCode, control: false);
       body = jsonDecode(response.body);
       _comic = Comic.fromJson(body, apiResponseStatus);
     } catch (e) {
@@ -55,9 +56,11 @@ class NetworkManager {
     return _comic;
   }
 
-  ApiResponseStatus _responseStatusConverter({int statusCode, bool control = true}) {
+  ApiResponseStatus _responseStatusConverter(
+      {int statusCode, bool control = true}) {
     ApiResponseStatus apiResponseStatus =
         handleApiStatusWithBaseResponse(statusCode);
+
     /// This will handle all response status codes and throw as a exception
     if (apiResponseStatus != ApiResponseStatus.successful && control)
       throw apiResponseStatus;
@@ -73,7 +76,7 @@ class NetworkManager {
     try {
       response = await NetworkManager.instance.client
           .get(parsedUrl, headers: header)
-          .timeout(Duration(minutes: timeOutMinute));
+          .timeout(Duration(seconds: timeOutSeconds));
     } on SocketException {
       /// Generic response checker for no connection
       throw ApiResponseStatus.noConnection;
