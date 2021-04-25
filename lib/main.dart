@@ -11,6 +11,7 @@ Future<void> main() async {
 
 Future<void> _initialize() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Open below if you want to see state changes
   Bloc.observer = BlocObserverService();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 }

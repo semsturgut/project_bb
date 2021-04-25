@@ -70,20 +70,25 @@ class _ComicListState extends State<ComicList> {
         physics: const BouncingScrollPhysics(),
         controller: _scrollController,
         itemBuilder: (BuildContext context, int index) {
-          if (index == widget.comicList.length) {
-            return widget.moreLoading ? widget.loadMoreWidget : SizedBox();
-          }
-          return widget.reLoadingIndex == index
-              ? LoadingWidget()
-              : ComicListTile(
-                  leading: NetworkImageWidget(
-                      url: widget.comicList.elementAt(index).img),
-                  title: widget.comicList.elementAt(index).title,
-                  onTap: () =>
-                      widget.onTap(widget.comicList.elementAt(index), index),
-                );
+          return _buildTile(index);
         },
       ),
     );
+  }
+
+  Widget _buildTile(int index) {
+    if (widget.comicList.length == index) {
+      return widget.moreLoading ? widget.loadMoreWidget : SizedBox();
+    } else if (widget.reLoadingIndex == index) {
+      return LoadingWidget();
+    } else if (widget.comicList.isNotEmpty) {
+      return ComicListTile(
+        leading: NetworkImageWidget(url: widget.comicList.elementAt(index).img),
+        title: widget.comicList.elementAt(index).title,
+        onTap: () => widget.onTap(widget.comicList.elementAt(index), index),
+      );
+    } else {
+      return SizedBox();
+    }
   }
 }

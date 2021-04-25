@@ -16,11 +16,12 @@ class ComicListCubit extends Cubit<ComicListState> {
 
   /// ShowView
   bool _moreLoading = false;
-  List<Comic> _comicList = List<Comic>();
+  List<Comic> _comicList = [];
   int _reloadComicIndex;
 
   Future<void> initialize() async {
-    if (!(state is ShowLoading)) {
+    if (!(state is ShowLoading) && !_moreLoading) {
+      _loadedDataCount = 0;
       _buildLoad(showPercentage: false);
       try {
         _comicList.clear();
@@ -43,20 +44,26 @@ class ComicListCubit extends Cubit<ComicListState> {
   }
 
   Future<void> loadMore() async {
-    if (!_moreLoading) {
-      _buildLoadMore();
-      List<Comic> _tempList = await comicRepository.getListOfComics(
-        latestComicNumber: _latestComicNumber,
-        index: _totalDataCount,
-        onIndexChanged: (v) {
-          _loadedDataCount = v;
-          _buildView();
-        },
-      );
-      _comicList.addAll(_tempList);
-      _latestComicNumber = _latestComicNumber - _totalDataCount;
+    if (!(state is ShowLoading) && !_moreLoading) {
       _loadedDataCount = 0;
       _buildLoadMore();
+      try {
+        List<Comic> _tempList = await comicRepository.getListOfComics(
+          latestComicNumber: _latestComicNumber,
+          index: _totalDataCount,
+          onIndexChanged: (v) {
+            _loadedDataCount = v;
+            _buildView();
+          },
+        );
+        _comicList.addAll(_tempList);
+        _latestComicNumber = _latestComicNumber - _totalDataCount;
+        _loadedDataCount = 0;
+        _buildLoadMore();
+      } on ApiResponseStatus catch (e) {
+        _buildLoadMore();
+        _buildError(e);
+      }
     }
   }
 

@@ -41,8 +41,11 @@ String handleBaseResponseWithString(ApiResponseStatus apiResponseStatus) {
     case ApiResponseStatus.noContent:
       return 'Not Content';
       break;
+    case ApiResponseStatus.otherError:
+      return 'Other Error';
+      break;
     default:
-      return "Generic Error Message";
+      return 'Undefined Error';
       break;
   }
 }

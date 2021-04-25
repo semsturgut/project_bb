@@ -11,13 +11,15 @@ class ComicDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(comic.title),
-            NetworkImageWidget(url: comic.img),
-            Text(comic.alt),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(comic.title),
+              NetworkImageWidget(url: comic.img),
+              Text(comic.alt),
+            ],
+          ),
         ),
       ),
     );

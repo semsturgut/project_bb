@@ -28,7 +28,7 @@ class NetworkManager {
     http.Response response = await doGet(url: latestComicURL);
     final body = jsonDecode(response.body);
     ApiResponseStatus apiResponseStatus =
-        _responseControl(statusCode: response.statusCode);
+        _responseStatusConverter(statusCode: response.statusCode);
     return Comic.fromJson(body, apiResponseStatus);
   }
 
@@ -38,7 +38,7 @@ class NetworkManager {
     Map<String, dynamic> body = Map<String, dynamic>();
     Comic _comic = Comic();
     ApiResponseStatus apiResponseStatus =
-        _responseControl(statusCode: response.statusCode, control: false);
+        _responseStatusConverter(statusCode: response.statusCode, control: false);
     try {
       body = jsonDecode(response.body);
       _comic = Comic.fromJson(body, apiResponseStatus);
@@ -46,6 +46,7 @@ class NetworkManager {
       _comic = Comic(
         img: "",
         title: handleBaseResponseWithString(apiResponseStatus),
+        // number: number - 99, // Crash test - 1
         number: number,
         alt: e.toString(),
         responseStatus: apiResponseStatus,
@@ -54,9 +55,10 @@ class NetworkManager {
     return _comic;
   }
 
-  ApiResponseStatus _responseControl({int statusCode, bool control = true}) {
+  ApiResponseStatus _responseStatusConverter({int statusCode, bool control = true}) {
     ApiResponseStatus apiResponseStatus =
         handleApiStatusWithBaseResponse(statusCode);
+    /// This will handle all response status codes and throw as a exception
     if (apiResponseStatus != ApiResponseStatus.successful && control)
       throw apiResponseStatus;
 
@@ -73,7 +75,11 @@ class NetworkManager {
           .get(parsedUrl, headers: header)
           .timeout(Duration(minutes: timeOutMinute));
     } on SocketException {
+      /// Generic response checker for no connection
       throw ApiResponseStatus.noConnection;
+    } on Exception {
+      /// Generic response checker for unexpected errors
+      throw ApiResponseStatus.otherError;
     }
     return response;
   }
